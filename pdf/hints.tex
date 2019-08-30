@@ -1,0 +1,526 @@
+\addchap{Exercise Hints}\label{hints}
+
+The hints below might help when you are stuck with one of the exercises in this book. They don't give away the entire solution, but rather try to help you find it yourself.
+
+\section{Program Structure}
+
+\subsection{Looping a triangle}\index{triangle (exercise)}
+
+You can start with a program that prints out the numbers 1 to 7, which you can derive by making a few modifications to the \hyperref[program_structure.loops]{even number printing example} given earlier in the chapter, where the \lstinline`for` loop was introduced.
+
+Now consider the equivalence between numbers and strings of hash characters. You can go from 1 to 2 by adding 1 (\lstinline`+= 1`). You can go from \lstinline`"#"` to \lstinline`"##"` by adding a character (\lstinline`+= "#"`). Thus, your solution can closely follow the number-printing program.
+
+\subsection{FizzBuzz}\index{FizzBuzz (exercise)}\index{remainder operator}\index{\% operator}
+
+Going over the numbers is clearly a looping job, and selecting what to print is a matter of conditional execution. Remember the trick of using the remainder (\lstinline`%`) operator for checking whether a number is divisible by another number (has a remainder of zero).
+
+In the first version, there are three possible outcomes for every number, so you'll have to create an \lstinline`if`/\lstinline`else if`/\lstinline`else` chain.\index{\textbar{} \textbar{}  operator}\index{if keyword!chaining}
+
+The second version of the program has a straightforward solution and a clever one. The simple solution is to add another conditional ``branch'' to precisely test the given condition. For the clever solution, build up a string containing the word or words to output and print either this word or the number if there is no word, potentially by making good use of the \lstinline`||` operator.
+
+\subsection{Chessboard}\index{chess board (exercise)}
+
+You can build the string by starting with an empty one (\lstinline`""`) and repeatedly adding characters. A newline character is written \lstinline`"\n"`.\index{nesting!of loops}\index{braces!block}
+
+To work with two \index{dimensions}dimensions, you will need a \index{loop}loop inside of a loop. Put braces around the bodies of both loops to make it easy to see where they start and end. Try to properly indent these bodies. The order of the loops must follow the order in which we build up the string (line by line, left to right, top to bottom). So the outer loop handles the lines, and the inner loop handles the characters on a line.\index{counter variable}\index{remainder operator}\index{\% operator}
+
+You'll need two bindings to track your progress. To know whether to put a space or a hash sign at a given position, you could test whether the sum of the two counters is even (\lstinline`% 2`).
+
+Terminating a line by adding a newline character must happen after the line has been built up, so do this after the inner loop but inside the outer loop.
+
+\section{Functions}
+
+\subsection{Minimum}\index{minimum (exercise)}
+
+If you have trouble putting braces and parentheses in the right place to get a valid function definition, start by copying one of the examples in this chapter and modifying it.\index{return keyword}
+
+A function may contain multiple \lstinline`return` statements.
+
+\subsection{Recursion}\index{isEven (exercise)}\index{if keyword!chaining}\index{recursion}
+
+Your function will likely look somewhat similar to the inner \lstinline`find` function in the recursive \lstinline`findSolution` \hyperref[functions.recursive_puzzle]{example} in this chapter, with an \lstinline`if`/\lstinline`else if`/\lstinline`else` chain that tests which of the three cases applies. The final \lstinline`else`, corresponding to the third case, makes the recursive call. Each of the branches should contain a \lstinline`return` statement or in some other way arrange for a specific value to be returned.\index{stack overflow}
+
+When given a negative number, the function will recurse again and again, passing itself an ever more negative number, thus getting further and further away from returning a result. It will eventually run out of stack space and abort.
+
+\subsection{Bean counting}\index{bean counting (exercise)}\index{length property!for string}\index{counter variable}
+
+Your function will need a \index{loop}loop that looks at every character in the string. It can run an index from zero to one below its length (\lstinline`< string.length`). If the character at the current position is the same as the one the function is looking for, it adds 1 to a counter variable. Once the loop has finished, the counter can be returned.\index{local binding}
+
+Take care to make all the bindings used in the function \emph{local} to the function by properly declaring them with the \lstinline`let` or \lstinline`const` keyword.
+
+\section{Data Structures: Objects and Arrays}
+
+\subsection{The sum of a range}\index{summing (exercise)}\index{array!creation}\index{square brackets}
+
+Building up an array is most easily done by first initializing a binding to \lstinline`[]` (a fresh, empty array) and repeatedly calling its \lstinline`push` method to add a value. Don't forget to return the array at the end of the function.\index{array!indexing}\index{comparison}
+
+Since the end boundary is inclusive, you'll need to use the \lstinline`<=` operator rather than \lstinline`<` to check for the end of your loop.\index{arguments object}
+
+The step parameter can be an optional parameter that defaults (using the \lstinline`=` operator) to 1.\index{range function}\index{for loop}
+
+Having \lstinline`range` understand negative step values is probably best done by writing two separate loops—one for counting up and one for counting down—because the comparison that checks whether the loop is finished needs to be \lstinline`>=` rather than \lstinline`<=` when counting downward.
+
+It might also be worthwhile to use a different default step, namely, -1, when the end of the range is smaller than the start. That way, \lstinline`range(5, 2)` returns something meaningful, rather than getting stuck in an \index{infinite loop}infinite loop. It is possible to refer to previous parameters in the default value of a parameter.
+
+\subsection{Reversing an array}\index{reversing (exercise)}
+
+There are two obvious ways to implement \lstinline`reverseArray`. The first is to simply go over the input array from front to back and use the \lstinline`unshift` method on the new array to insert each element at its start. The second is to loop over the input array backwards and use the \lstinline`push` method. Iterating over an array backwards requires a (somewhat awkward) \lstinline`for` specification, like \lstinline`(let i = array.length - 1; i >= 0; i--)`.\index{slice method}
+
+Reversing the array in place is harder. You have to be careful not to overwrite elements that you will later need. Using \lstinline`reverseArray` or otherwise copying the whole array (\lstinline`array.slice(0)` is a good way to copy an array) works but is cheating.
+
+The trick is to \emph{swap} the first and last elements, then the second and second-to-last, and so on. You can do this by looping over half the length of the array (use \lstinline`Math.floor` to round down—you don't need to touch the middle element in an array with an odd number of elements) and swapping the element at position \lstinline`i` with the one at position \lstinline`array.length - 1 - i`. You can use a local binding to briefly hold on to one of the elements, overwrite that one with its mirror image, and then put the value from the local binding in the place where the mirror image used to be.
+
+\subsection{A list}\index{list (exercise)}\index{linked list}
+
+Building up a list is easier when done back to front. So \lstinline`arrayToList` could iterate over the array backwards (see the previous exercise) and, for each element, add an object to the list. You can use a local binding to hold the part of the list that was built so far and use an assignment like \lstinline`list = {value: X, rest: list}` to add an element.\index{for loop}
+
+To run over a list (in \lstinline`listToArray` and \lstinline`nth`), a \lstinline`for` loop specification like this can be used:
+
+\begin{lstlisting}
+for (let node = list; node; node = node.rest) {}
+\end{lstlisting}
+\noindent
+
+Can you see how that works? Every iteration of the loop, \lstinline`node` points to the current sublist, and the body can read its \lstinline`value` property to get the current element. At the end of an iteration, \lstinline`node` moves to the next sublist. When that is null, we have reached the end of the list, and the loop is finished.\index{recursion}
+
+The recursive version of \lstinline`nth` will, similarly, look at an ever smaller part of the ``tail'' of the list and at the same time count down the index until it reaches zero, at which point it can return the \lstinline`value` property of the node it is looking at. To get the zeroth element of a list, you simply take the \lstinline`value` property of its head node. To get element \emph{N} + 1, you take the \emph{N}th element of the list that's in this list's \lstinline`rest` property.
+
+\subsection{Deep comparison}\index{deep comparison (exercise)}\index{comparison!deep}\index{typeof operator}\index{=== operator}
+
+Your test for whether you are dealing with a real object will look something like \lstinline`typeof x == "object" && x != null`. Be careful to compare properties only when \emph{both} arguments are objects. In all other cases you can just immediately return the result of applying \lstinline`===`.\index{Object.keys function}
+
+Use \lstinline`Object.keys` to go over the properties. You need to test whether both objects have the same set of property names and whether those properties have identical values. One way to do that is to ensure that both objects have the same number of properties (the lengths of the property lists are the same). And then, when looping over one of the object's properties to compare them, always first make sure the other actually has a property by that name. If they have the same number of properties and all properties in one also exist in the other, they have the same set of property names.\index{return value}
+
+Returning the correct value from the function is best done by immediately returning false when a mismatch is found and returning true at the end of the function.
+
+\section{Higher-Order Functions}
+
+\subsection{Everything}\index{everything (exercise)}\index{short-circuit evaluation}\index{return keyword}
+
+Like the \lstinline`&&` operator, the \lstinline`every` method can stop evaluating further elements as soon as it has found one that doesn't match. So the loop-based version can jump out of the loop—with \lstinline`break` or \lstinline`return`—as soon as it runs into an element for which the predicate function returns false. If the loop runs to its end without finding such an element, we know that all elements matched and we should return true.
+
+To build \lstinline`every` on top of \lstinline`some`, we can apply \emph{\index{De Morgan's
+laws}De Morgan's
+laws}, which state that \lstinline`a && b` equals \lstinline`!(!a || !b)`. This can be generalized to arrays, where all elements in the array match if there is no element in the array that does not match.
+
+\subsection{Dominant writing direction}\index{dominant direction (exercise)}\index{textScripts function}\index{filter method}\index{characterScript function}
+
+Your solution might look a lot like the first half of the \lstinline`textScripts` example. You again have to count characters by a criterion based on \lstinline`characterScript` and then filter out the part of the result that refers to uninteresting (script-less) characters.\index{reduce method}
+
+Finding the direction with the highest character count can be done with \lstinline`reduce`. If it's not clear how, refer to the example earlier in the chapter, where \lstinline`reduce` was used to find the script with the most characters.
+
+\section{The Secret Life of Objects}
+
+\subsection{A vector type}\index{vector (exercise)}
+
+Look back to the \lstinline`Rabbit` class example if you're unsure how \lstinline`class` declarations look.\index{Pythagoras}\index{defineProperty function}\index{square root}\index{Math.sqrt function}
+
+Adding a getter property to the constructor can be done by putting the word \lstinline`get` before the method name. To compute the distance from (0, 0) to (x, y), you can use the Pythagorean theorem, which says that the square of the distance we are looking for is equal to the square of the x-coordinate plus the square of the y-coordinate. Thus, $\sqrt{x^2 + y^2}$ is the number you want, and \lstinline`Math.sqrt` is the way you compute a square root in JavaScript.
+
+\subsection{Groups}\index{groups (exercise)}\index{Group class}\index{indexOf method}\index{includes method}
+
+The easiest way to do this is to store an array of group members in an instance property. The \lstinline`includes` or \lstinline`indexOf` methods can be used to check whether a given value is in the array.\index{push method}
+
+Your class's \index{constructor}constructor can set the member collection to an empty array. When \lstinline`add` is called, it must check whether the given value is in the array or add it, for example with \lstinline`push`, otherwise.\index{filter method}
+
+Deleting an element from an array, in \lstinline`delete`, is less straightforward, but you can use \lstinline`filter` to create a new array without the value. Don't forget to overwrite the property holding the members with the newly filtered version of the array.\index{for/of loop}\index{iterable interface}
+
+The \lstinline`from` method can use a \lstinline`for`/\lstinline`of` loop to get the values out of the iterable object and call \lstinline`add` to put them into a newly created group.
+
+\subsection{Iterable groups}\index{groups (exercise)}\index{Group class}\index{next method}
+
+It is probably worthwhile to define a new class \lstinline`GroupIterator`. Iterator instances should have a property that tracks the current position in the group. Every time \lstinline`next` is called, it checks whether it is done and, if not, moves past the current value and returns it.
+
+The \lstinline`Group` class itself gets a method named by \lstinline`Symbol.iterator` that, when called, returns a new instance of the iterator class for that group.
+
+\subsection{Borrowing a method}
+
+Remember that methods that exist on plain objects come from \lstinline`Object.prototype`.
+
+Also remember that you can call a function with a specific \lstinline`this` binding by using its \lstinline`call` method.
+
+\section{Project: A Robot}
+
+\subsection{Measuring a robot}\index{measuring a robot (exercise)}\index{runRobot function}
+
+You'll have to write a variant of the \lstinline`runRobot` function that, instead of logging the events to the console, returns the number of steps the robot took to complete the task.
+
+Your measurement function can then, in a loop, generate new states and count the steps each of the robots takes. When it has generated enough measurements, it can use \lstinline`console.log` to output the average for each robot, which is the total number of steps taken divided by the number of measurements.
+
+\subsection{Robot efficiency}\index{robot efficiency (exercise)}
+
+The main limitation of \lstinline`goalOrientedRobot` is that it considers only one parcel at a time. It will often walk back and forth across the village because the parcel it happens to be looking at happens to be at the other side of the map, even if there are others much closer.
+
+One possible solution would be to compute routes for all packages and then take the shortest one. Even better results can be obtained, if there are multiple shortest routes, by preferring the ones that go to pick up a package instead of delivering a package.
+
+\subsection{Persistent group}\index{persistent map (exercise)}\index{Set class}\index{array!creation}\index{PGroup class}
+
+The most convenient way to represent the set of member values is still as an array since arrays are easy to copy.\index{concat method}\index{filter method}
+
+When a value is added to the group, you can create a new group with a copy of the original array that has the value added (for example, using \lstinline`concat`). When a value is deleted, you filter it from the array.
+
+The class's \index{constructor}constructor can take such an array as argument and store it as the instance's (only) property. This array is never updated.\index{static method}
+
+To add a property (\lstinline`empty`) to a constructor that is not a method, you have to add it to the constructor after the class definition, as a regular property.
+
+You need only one \lstinline`empty` instance because all empty groups are the same and instances of the class don't change. You can create many different groups from that single empty group without affecting it.
+
+\section{Bugs and Errors}
+
+\subsection{Retry}\index{primitiveMultiply (exercise)}\index{try keyword}\index{catch keyword}\index{throw keyword}
+
+The call to \lstinline`primitiveMultiply` should definitely happen in a \lstinline`try` block. The corresponding \lstinline`catch` block should rethrow the exception when it is not an instance of \lstinline`MultiplicatorUnitFailure` and ensure the call is retried when it is.
+
+To do the retrying, you can either use a loop that stops only when a call succeeds—as in the \hyperref[error.look]{\lstinline`look` example} earlier in this chapter—or use \index{recursion}recursion and hope you don't get a string of failures so long that it overflows the stack (which is a pretty safe bet).
+
+\subsection{The locked box}\index{locked box (exercise)}\index{finally keyword}\index{try keyword}
+
+This exercise calls for a \lstinline`finally` block. Your function should first unlock the box and then call the argument function from inside a \lstinline`try` body. The \lstinline`finally` block after it should lock the box again.
+
+To make sure we don't lock the box when it wasn't already locked, check its lock at the start of the function and unlock and lock it only when it started out locked.
+
+\section{Regular Expressions}
+
+\subsection{Quoting style}\index{quoting style (exercise)}\index{boundary}
+
+The most obvious solution is to replace only quotes with a nonword character on at least one side—something like \lstinline`/\W'|'\W/`. But you also have to take the start and end of the line into account.\index{grouping}\index{replace method}\index{parentheses!in regular expressions}
+
+In addition, you must ensure that the replacement also includes the characters that were matched by the \lstinline`\W` pattern so that those are not dropped. This can be done by wrapping them in parentheses and including their groups in the replacement string (\lstinline`$1`, \lstinline`$2`). Groups that are not matched will be replaced by nothing.
+
+\subsection{Numbers again}\index{regular expression!escaping}\index{backslash character!in regular expressions}
+
+First, do not forget the backslash in front of the period.
+
+Matching the optional \index{sign}sign in front of the \index{number}number, as well as in front of the \index{exponent}exponent, can be done with \lstinline`[+\-]?` or \lstinline`(\+|-|)` (plus, minus, or nothing).\index{pipe character}
+
+The more complicated part of the exercise is the problem of matching both \lstinline`"5."` and \lstinline`".5"` without also matching \lstinline`"."`. For this, a good solution is to use the \lstinline`|` operator to separate the two cases—either one or more digits optionally followed by a dot and zero or more digits \emph{or} a dot followed by one or more digits.\index{exponent}\index{case sensitivity}\index{regular expression!flags}
+
+Finally, to make the \emph{e} case insensitive, either add an \lstinline`i` option to the regular expression or use \lstinline`[eE]`.
+
+\section{Modules}
+
+\subsection{A modular robot}\index{modular robot (exercise)}
+
+Here's what I would have done (but again, there is no single \emph{right} way to design a given module):\index{dijkstrajs package}
+
+The code used to build the road graph lives in the \lstinline`graph` module. Because I'd rather use \lstinline`dijkstrajs` from NPM than our own pathfinding code, we'll make this build the kind of graph data that \lstinline`dijkstrajs` expects. This module exports a single function, \lstinline`buildGraph`. I'd have \lstinline`buildGraph` accept an array of two-element arrays, rather than strings containing hyphens, to make the module less dependent on the input format.
+
+The \lstinline`roads` module contains the raw road data (the \lstinline`roads` array) and the \lstinline`roadGraph` binding. This module depends on \lstinline`./graph` and exports the road graph.\index{random-item package}
+
+The \lstinline`VillageState` class lives in the \lstinline`state` module. It depends on the \lstinline`./roads` module because it needs to be able to verify that a given road exists. It also needs \lstinline`randomPick`. Since that is a three-line function, we could just put it into the \lstinline`state` module as an internal helper function. But \lstinline`randomRobot` needs it too. So we'd have to either duplicate it or put it into its own module. Since this function happens to exist on NPM in the \lstinline`random-item` package, a good solution is to just make both modules depend on that. We can add the \lstinline`runRobot` function to this module as well, since it's small and closely related to state management. The module exports both the \lstinline`VillageState` class and the \lstinline`runRobot` function.
+
+Finally, the robots, along with the values they depend on such as \lstinline`mailRoute`, could go into an \lstinline`example-robots` module, which depends on \lstinline`./roads` and exports the robot functions. To make it possible for \lstinline`goalOrientedRobot` to do route-finding, this module also depends on \lstinline`dijkstrajs`.
+
+By offloading some work to \index{NPM}NPM modules, the code became a little smaller. Each individual module does something rather simple and can be read on its own. Dividing code into modules also often suggests further improvements to the program's design. In this case, it seems a little odd that the \lstinline`VillageState` and the robots depend on a specific road graph. It might be a better idea to make the graph an argument to the state's constructor and make the robots read it from the state object—this reduces dependencies (which is always good) and makes it possible to run simulations on different maps (which is even better).
+
+Is it a good idea to use NPM modules for things that we could have written ourselves? In principle, yes—for nontrivial things like the pathfinding function you are likely to make mistakes and waste time writing them yourself. For tiny functions like \lstinline`random-item`, writing them yourself is easy enough. But adding them wherever you need them does tend to clutter your modules.
+
+However, you should also not underestimate the work involved in \emph{finding} an appropriate NPM package. And even if you find one, it might not work well or may be missing some feature you need. On top of that, depending on NPM packages means you have to make sure they are installed, you have to distribute them with your program, and you might have to periodically upgrade them.
+
+So again, this is a trade-off, and you can decide either way depending on how much the packages help you.
+
+\subsection{Roads module}\index{roads module (exercise)}\index{destructuring binding}\index{exports object}
+
+Since this is a \index{CommonJS module}CommonJS module, you have to use \lstinline`require` to import the graph module. That was described as exporting a \lstinline`buildGraph` function, which you can pick out of its interface object with a destructuring \lstinline`const` declaration.
+
+To export \lstinline`roadGraph`, you add a property to the \lstinline`exports` object. Because \lstinline`buildGraph` takes a data structure that doesn't precisely match \lstinline`roads`, the splitting of the road strings must happen in your module.
+
+\subsection{Circular dependencies}\index{overriding}\index{circular dependency}\index{exports object}
+
+The trick is that \lstinline`require` adds modules to its cache \emph{before} it starts loading the module. That way, if any \lstinline`require` call made while it is running tries to load it, it is already known, and the current interface will be returned, rather than starting to load the module once more (which would eventually overflow the stack).
+
+If a module overwrites its \lstinline`module.exports` value, any other module that has received its interface value before it finished loading will have gotten hold of the default interface object (which is likely empty), rather than the intended interface value.
+
+\section{Asynchronous Programming}
+
+\subsection{Tracking the scalpel}\index{scalpel (exercise)}
+
+This can be done with a single loop that searches through the nests, moving forward to the next when it finds a value that doesn't match the current nest's name and returning the name when it finds a matching value. In the \lstinline`async` function, a regular \lstinline`for` or \lstinline`while` loop can be used.\index{recursion}
+
+To do the same in a plain function, you will have to build your loop using a recursive function. The easiest way to do this is to have that function return a promise by calling \lstinline`then` on the promise that retrieves the storage value. Depending on whether that value matches the name of the current nest, the handler returns that value or a further promise created by calling the loop function again.
+
+Don't forget to start the loop by calling the recursive function once from the main function.\index{exception handling}
+
+In the \lstinline`async` function, rejected promises are converted to exceptions by \lstinline`await`. When an \lstinline`async` function throws an exception, its promise is rejected. So that works.
+
+If you implemented the non-\lstinline`async` function as outlined earlier, the way \lstinline`then` works also automatically causes a failure to end up in the returned promise. If a request fails, the handler passed to \lstinline`then` isn't called, and the promise it returns is rejected with the same reason.
+
+\subsection{Building Promise.all}\index{Promise.all function}\index{Promise class}\index{then method}\index{building Promise.all (exercise)}
+
+The function passed to the \lstinline`Promise` constructor will have to call \lstinline`then` on each of the promises in the given array. When one of them succeeds, two things need to happen. The resulting value needs to be stored in the correct position of a result array, and we must check whether this was the last pending \index{promise}promise and finish our own promise if it was.\index{counter variable}
+
+The latter can be done with a counter that is initialized to the length of the input array and from which we subtract 1 every time a promise succeeds. When it reaches 0, we are done. Make sure you take into account the situation where the input array is empty (and thus no promise will ever resolve).
+
+Handling failure requires some thought but turns out to be extremely simple. Just pass the \lstinline`reject` function of the wrapping promise to each of the promises in the array as a \lstinline`catch` handler or as a second argument to \lstinline`then` so that a failure in one of them triggers the rejection of the whole wrapper promise.
+
+\section{Project: A Programming Language}
+
+\subsection{Arrays}\index{arrays in egg (exercise)}
+
+The easiest way to do this is to represent Egg arrays with JavaScript arrays.\index{slice method}
+
+The values added to the top scope must be functions. By using a rest argument (with triple-dot notation), the definition of \lstinline`array` can be \emph{very} simple.
+
+\subsection{Closure}\index{closure}\index{closure in egg (exercise)}
+
+Again, we are riding along on a JavaScript mechanism to get the equivalent feature in Egg. Special forms are passed the local scope in which they are evaluated so that they can evaluate their subforms in that scope. The function returned by \lstinline`fun` has access to the \lstinline`scope` argument given to its enclosing function and uses that to create the function's local \index{scope}scope when it is called.\index{compilation}
+
+This means that the \index{prototype}prototype of the local scope will be the scope in which the function was created, which makes it possible to access bindings in that scope from the function. This is all there is to implementing closure (though to compile it in a way that is actually efficient, you'd need to do some more work).
+
+\subsection{Comments}\index{comments in egg (exercise)}\index{whitespace!syntax}
+
+Make sure your solution handles multiple comments in a row, with potentially whitespace between or after them.
+
+A \index{regular expression}regular expression is probably the easiest way to solve this. Write something that matches ``whitespace or a comment, zero or more times''. Use the \lstinline`exec` or \lstinline`match` method and look at the length of the first element in the returned array (the whole match) to find out how many characters to slice off.
+
+\subsection{Fixing scope}\index{binding!compilation of}\index{assignment}\index{getPrototypeOf function}\index{hasOwnProperty method}\index{fixing scope (exercise)}
+
+You will have to loop through one \index{scope}scope at a time, using \lstinline`Object.getPrototypeOf` to go to the next outer scope. For each scope, use \lstinline`hasOwnProperty` to find out whether the binding, indicated by the \lstinline`name` property of the first argument to \lstinline`set`, exists in that scope. If it does, set it to the result of evaluating the second argument to \lstinline`set` and then return that value.\index{global scope}\index{run-time error}
+
+If the outermost scope is reached (\lstinline`Object.getPrototypeOf` returns null) and we haven't found the binding yet, it doesn't exist, and an error should be thrown.
+
+\section{The Document Object Model}
+
+\subsection{Build a table}\index{createElement method}\index{table example}\index{appendChild method}
+
+You can use \lstinline`document.createElement` to create new element nodes, \lstinline`document.createTextNode` to create text nodes, and the \lstinline`appendChild` method to put nodes into other nodes.\index{Object.keys function}
+
+You'll want to loop over the key names once to fill in the top row and then again for each object in the array to construct the data rows. To get an array of key names from the first object, \lstinline`Object.keys` will be useful.\index{getElementById method}\index{querySelector method}
+
+To add the table to the correct parent node, you can use \lstinline`document.getElementById` or \lstinline`document.querySelector` to find the node with the proper \lstinline`id` attribute.
+
+\subsection{Elements by tag name}\index{getElementsByTagName method}\index{recursion}
+
+The solution is most easily expressed with a recursive function, similar to the \hyperref[dom.talksAbout]{\lstinline`talksAbout` function} defined earlier in this chapter.\index{concatenation}\index{concat method}\index{closure}
+
+You could call \lstinline`byTagname` itself recursively, concatenating the resulting arrays to produce the output. Or you could create an inner function that calls itself recursively and that has access to an array binding defined in the outer function, to which it can add the matching elements it finds. Don't forget to call the \index{inner
+function}inner
+function once from the outer function to start the process.\index{nodeType property}\index{ELEMENT\_NODE code}
+
+The recursive function must check the node type. Here we are interested only in node type 1 (\lstinline`Node.ELEMENT_NODE`). For such nodes, we must loop over their children and, for each child, see whether the child matches the query while also doing a recursive call on it to inspect its own children.
+
+\subsection{The cat's hat}
+
+\lstinline`Math.cos` and \lstinline`Math.sin` measure angles in radians, where a full circle is 2π. For a given angle, you can get the opposite angle by adding half of this, which is \lstinline`Math.PI`. This can be useful for putting the hat on the opposite side of the orbit.
+
+\section{Handling Events}
+
+\subsection{Balloon}\index{keydown event}\index{key property}\index{balloon (exercise)}
+
+You'll want to register a handler for the \lstinline`"keydown"` event and look at \lstinline`event.key` to figure out whether the up or down arrow key was pressed.
+
+The current size can be kept in a binding so that you can base the new size on it. It'll be helpful to define a function that updates the size—both the binding and the style of the balloon in the DOM—so that you can call it from your event handler, and possibly also once when starting, to set the initial size.\index{replaceChild method}\index{textContent property}
+
+You can change the balloon to an explosion by replacing the text node with another one (using \lstinline`replaceChild`) or by setting the \lstinline`textContent` property of its parent node to a new string.
+
+\subsection{Mouse trail}\index{mouse trail (exercise)}
+
+Creating the elements is best done with a loop. Append them to the document to make them show up. To be able to access them later to change their position, you'll want to store the elements in an array.\index{mousemove event}\index{array!indexing}\index{remainder operator}\index{\% operator}
+
+Cycling through them can be done by keeping a \index{counter variable}counter variable and adding 1 to it every time the \lstinline`"mousemove"` event fires. The remainder operator (\lstinline`% elements.length`) can then be used to get a valid array index to pick the element you want to position during a given event.\index{simulation}\index{requestAnimationFrame function}
+
+Another interesting effect can be achieved by modeling a simple \index{physics}physics system. Use the \lstinline`"mousemove"` event only to update a pair of bindings that track the mouse position. Then use \lstinline`requestAnimationFrame` to simulate the trailing elements being attracted to the position of the mouse pointer. At every animation step, update their position based on their position relative to the pointer (and, optionally, a speed that is stored for each element). Figuring out a good way to do this is up to you.
+
+\subsection{Tabs}\index{text node}\index{childNodes property}\index{live data structure}\index{tabbed interface (exercise)}\index{whitespace!in HTML}
+
+One pitfall you might run into is that you can't directly use the node's \lstinline`childNodes` property as a collection of tab nodes. For one thing, when you add the buttons, they will also become child nodes and end up in this object because it is a live data structure. For another, the text nodes created for the whitespace between the nodes are also in \lstinline`childNodes` but should not get their own tabs. You can use \lstinline`children` instead of \lstinline`childNodes` to ignore text nodes.\index{TEXT\_NODE code}\index{nodeType property}
+
+You could start by building up an array of tabs so that you have easy access to them. To implement the styling of the buttons, you could store objects that contain both the tab panel and its button.
+
+I recommend writing a separate function for changing tabs. You can either store the previously selected tab and change only the styles needed to hide that and show the new one, or you can just update the style of all tabs every time a new tab is selected.
+
+You might want to call this function immediately to make the interface start with the first tab visible.
+
+\section{Project: A Platform Game}
+
+\subsection{Pausing the game}\index{pausing (exercise)}\index{animation!platform game}
+
+An animation can be interrupted by returning \lstinline`false` from the function given to \lstinline`runAnimation`. It can be continued by calling \lstinline`runAnimation` again.\index{closure}
+
+So we need to communicate the fact that we are pausing the game to the function given to \lstinline`runAnimation`. For that, you can use a binding that both the event handler and that function have access to.\index{event handling}\index{removeEventListener method}\index{function!as value}
+
+When finding a way to unregister the handlers registered by \lstinline`trackKeys`, remember that the \emph{exact} same function value that was passed to \lstinline`addEventListener` must be passed to \lstinline`removeEventListener` to successfully remove a handler. Thus, the \lstinline`handler` function value created in \lstinline`trackKeys` must be available to the code that unregisters the handlers.
+
+You can add a property to the object returned by \lstinline`trackKeys`, containing either that function value or a method that handles the unregistering directly.
+
+\subsection{A monster}\index{monster (exercise)}\index{persistent data structure}
+
+If you want to implement a type of motion that is stateful, such as bouncing, make sure you store the necessary state in the actor object—include it as constructor argument and add it as a property.
+
+Remember that \lstinline`update` returns a \emph{new} object, rather than changing the old one.\index{collision detection}
+
+When handling collision, find the player in \lstinline`state.actors` and compare its position to the monster's position. To get the \emph{bottom} of the player, you have to add its vertical size to its vertical position. The creation of an updated state will resemble either \lstinline`Coin`'s \lstinline`collide` method (removing the actor) or \lstinline`Lava`'s (changing the status to \lstinline`"lost"`), depending on the player position.
+
+\section{Drawing on Canvas}
+
+\subsection{Shapes}\index{path!canvas}\index{shapes (exercise)}
+
+The \index{trapezoid}trapezoid (1) is easiest to draw using a path. Pick suitable center coordinates and add each of the four corners around the center.\index{flipHorizontally function}\index{rotation}
+
+The \index{diamond}diamond (2) can be drawn the straightforward way, with a path, or the interesting way, with a \lstinline`rotate` \index{transformation}transformation. To use rotation, you will have to apply a trick similar to what we did in the \lstinline`flipHorizontally` function. Because you want to rotate around the center of your rectangle and not around the point (0,0), you must first \lstinline`translate` to there, then rotate, and then translate back.
+
+Make sure you reset the transformation after drawing any shape that creates one.\index{remainder operator}\index{\% operator}
+
+For the \index{zigzag}zigzag (3) it becomes impractical to write a new call to \lstinline`lineTo` for each line segment. Instead, you should use a \index{loop}loop. You can have each iteration draw either two \index{line}line segments (right and then left again) or one, in which case you must use the evenness (\lstinline`% 2`) of the loop index to determine whether to go left or right.
+
+You'll also need a loop for the \index{spiral}spiral (4). If you draw a series of points, with each point moving further along a circle around the spiral's center, you get a circle. If, during the loop, you vary the radius of the circle on which you are putting the current point and go around more than once, the result is a spiral.\index{quadraticCurveTo method}
+
+The \index{star}star (5) depicted is built out of \lstinline`quadraticCurveTo` lines. You could also draw one with straight lines. Divide a circle into eight pieces for a star with eight points, or however many pieces you want. Draw lines between these points, making them curve toward the center of the star. With \lstinline`quadraticCurveTo`, you can use the center as the control point.
+
+\subsection{The pie chart}\index{fillText method}\index{textAlign property}\index{textBaseline property}\index{pie chart example}
+
+You will need to call \lstinline`fillText` and set the context's \lstinline`textAlign` and \lstinline`textBaseline` properties in such a way that the text ends up where you want it.
+
+A sensible way to position the labels would be to put the text on the line going from the center of the pie through the middle of the slice. You don't want to put the text directly against the side of the pie but rather move the text out to the side of the pie by a given number of pixels.
+
+The \index{angle}angle of this line is \lstinline`currentAngle + 0.5 * sliceAngle`. The following code finds a position on this line 120 pixels from the center:
+
+\begin{lstlisting}
+let middleAngle = currentAngle + 0.5 * sliceAngle;
+let textX = Math.cos(middleAngle) * 120 + centerX;
+let textY = Math.sin(middleAngle) * 120 + centerY;
+\end{lstlisting}
+\noindent
+
+For \lstinline`textBaseline`, the value \lstinline`"middle"` is probably appropriate when using this approach. What to use for \lstinline`textAlign` depends on which side of the circle we are on. On the left, it should be \lstinline`"right"`, and on the right, it should be \lstinline`"left"`, so that the text is positioned away from the pie.\index{Math.cos function}
+
+If you are not sure how to find out which side of the circle a given angle is on, look to the explanation of \lstinline`Math.cos` in \hyperref[dom.sin_cos]{Chapter 14}. The cosine of an angle tells us which x-coordinate it corresponds to, which in turn tells us exactly which side of the circle we are on.
+
+\subsection{A bouncing ball}\index{strokeRect method}\index{animation}\index{arc method}
+
+A \index{box}box is easy to draw with \lstinline`strokeRect`. Define a binding that holds its size or define two bindings if your box's width and height differ. To create a round \index{ball}ball, start a path and call \lstinline`arc(x, y, radius, 0, 7)`, which creates an arc going from zero to more than a whole circle. Then fill the path.\index{collision detection}\index{Vec class}
+
+To model the ball's position and \index{speed}speed, you can use the \lstinline`Vec` class from \hyperref[game.vector]{Chapter 16}. Give it a starting speed, preferably one that is not purely vertical or horizontal, and for every \index{frame}frame multiply that speed by the amount of time that elapsed. When the ball gets too close to a vertical wall, invert the x component in its speed. Likewise, invert the y component when it hits a horizontal wall.\index{clearRect method}\index{clearing}
+
+After finding the ball's new position and speed, use \lstinline`clearRect` to delete the scene and redraw it using the new position.
+
+\subsection{Precomputed mirroring}\index{mirror}\index{scaling}\index{drawImage method}
+
+The key to the solution is the fact that we can use a \index{canvas}canvas element as a source image when using \lstinline`drawImage`. It is possible to create an extra \lstinline`<canvas>` element, without adding it to the document, and draw our inverted sprites to it, once. When drawing an actual frame, we just copy the already inverted sprites to the main canvas.\index{load event}
+
+Some care would be required because images do not load instantly. We do the inverted drawing only once, and if we do it before the image loads, it won't draw anything. A \lstinline`"load"` handler on the image can be used to draw the inverted images to the extra canvas. This canvas can be used as a drawing source immediately (it'll simply be blank until we draw the character onto it).
+
+\section{HTTP and Forms}
+
+\subsection{Content negotiation}\index{content negotiation (exercise)}
+
+Base your code on the \lstinline`fetch` examples \hyperref[http.fetch]{earlier in the chapter}.\index{406 (HTTP status code)}\index{Accept header}
+
+Asking for a bogus media type will return a response with code 406, ``Not acceptable'', which is the code a server should return when it can't fulfill the \lstinline`Accept` header.
+
+\subsection{A JavaScript workbench}\index{click event}\index{mousedown event}\index{Function constructor}\index{workbench (exercise)}
+
+Use \lstinline`document.querySelector` or \lstinline`document.getElementById` to get access to the elements defined in your HTML. An event handler for \lstinline`"click"` or \lstinline`"mousedown"` events on the button can get the \lstinline`value` property of the text field and call \lstinline`Function` on it.\index{try keyword}\index{exception handling}
+
+Make sure you wrap both the call to \lstinline`Function` and the call to its result in a \lstinline`try` block so you can catch the exceptions it produces. In this case, we really don't know what type of exception we are looking for, so catch everything.\index{textContent property}\index{output}\index{text}\index{createTextNode method}\index{newline character}
+
+The \lstinline`textContent` property of the output element can be used to fill it with a string message. Or, if you want to keep the old content around, create a new text node using \lstinline`document.createTextNode` and append it to the element. Remember to add a newline character to the end so that not all output appears on a single line.
+
+\subsection{Conway's Game of Life}\index{game of life (exercise)}
+
+To solve the problem of having the changes conceptually happen at the same time, try to see the computation of a \index{generation}generation as a \index{pure
+function}pure
+function, which takes one \index{grid}grid and produces a new grid that represents the next turn.
+
+Representing the matrix can be done in the way shown in \hyperref[object.matrix]{Chapter 6}. You can count live \index{neighbor}neighbors with two nested loops, looping over adjacent coordinates in both dimensions. Take care not to count cells outside of the field and to ignore the cell in the center, whose neighbors we are counting.\index{event handling}\index{change event}
+
+Ensuring that changes to \index{checkbox}checkboxes take effect on the next generation can be done in two ways. An event handler could notice these changes and update the current grid to reflect them, or you could generate a fresh grid from the values in the checkboxes before computing the next turn.
+
+If you choose to go with event handlers, you might want to attach \index{attribute}attributes that identify the position that each checkbox corresponds to so that it is easy to find out which cell to change.\index{drawing}\index{table (HTML tag)}\index{br (HTML tag)}
+
+To draw the grid of checkboxes, you can either use a \lstinline`<table>` element (see \hyperref[dom.exercise_table]{Chapter 14}) or simply put them all in the same element and put \lstinline`<br>` (line break) elements between the rows.
+
+\section{Project: A Pixel Art Editor}
+
+\subsection{Keyboard bindings}\index{keyboard bindings (exercise)}\index{key property}\index{shift key}
+
+The \lstinline`key` property of events for letter keys will be the lowercase letter itself, if \textsc{shift} isn't being held. We're not interested in key events with \textsc{shift} here.\index{keydown event}
+
+A \lstinline`"keydown"` handler can inspect its event object to see whether it matches any of the shortcuts. You can automatically get the list of first letters from the \lstinline`tools` object so that you don't have to write them out.\index{preventDefault method}
+
+When the key event matches a shortcut, call \lstinline`preventDefault` on it and \index{dispatch}dispatch the appropriate action.
+
+\subsection{Efficient drawing}\index{efficient drawing (exercise)}
+
+This exercise is a good example of how \index{immutable}immutable data structures can make code \emph{faster}. Because we have both the old and the new picture, we can compare them and redraw only the pixels that changed color, saving more than 99 percent of the drawing work in most cases.\index{drawPicture function}
+
+You can either write a new function \lstinline`updatePicture` or have \lstinline`drawPicture` take an extra argument, which may be undefined or the previous picture. For each \index{pixel}pixel, the function checks whether a previous picture was passed with the same color at this position and skips the pixel when that is the case.\index{width property}\index{height property}\index{canvas (HTML tag)}
+
+Because the canvas gets cleared when we change its size, you should also avoid touching its \lstinline`width` and \lstinline`height` properties when the old picture and the new picture have the same size. If they are different, which will happen when a new picture has been loaded, you can set the binding holding the old picture to null after changing the canvas size because you shouldn't skip any pixels after you've changed the canvas size.
+
+\subsection{Circles}\index{circles (exercise)}\index{rectangle function}
+
+You can take some inspiration from the \lstinline`rectangle` tool. Like that tool, you'll want to keep drawing on the \emph{starting} picture, rather than the current picture, when the pointer moves.
+
+To figure out which pixels to color, you can use the \index{Pythagorean
+theorem}Pythagorean
+theorem. First figure out the distance between the current pointer position and the start position by taking the square root (\lstinline`Math.sqrt`) of the sum of the square (\lstinline`Math.pow(x, 2)`) of the difference in x-coordinates and the square of the difference in y-coordinates. Then loop over a square of pixels around the start position, whose sides are at least twice the \index{radius}radius, and color those that are within the circle's radius, again using the Pythagorean formula to figure out their \index{distance}distance from the center.
+
+Make sure you don't try to color pixels that are outside of the picture's boundaries.
+
+\subsection{Proper lines}\index{proper lines (exercise)}\index{line drawing}
+
+The thing about the problem of drawing a pixelated line is that it is really four similar but slightly different problems. Drawing a horizontal line from the left to the right is easy—you loop over the x-coordinates and color a pixel at every step. If the line has a slight slope (less than 45 degrees or ¼π radians), you can interpolate the y-coordinate along the slope. You still need one pixel per \emph{x} position, with the \emph{y} position of those pixels determined by the slope.
+
+But as soon as your slope goes across 45 degrees, you need to switch the way you treat the coordinates. You now need one pixel per \emph{y} position since the line goes up more than it goes left. And then, when you cross 135 degrees, you have to go back to looping over the x-coordinates, but from right to left.
+
+You don't actually have to write four loops. Since drawing a line from \emph{A} to \emph{B} is the same as drawing a line from \emph{B} to \emph{A}, you can swap the start and end positions for lines going from right to left and treat them as going left to right.
+
+So you need two different loops. The first thing your line drawing function should do is check whether the difference between the x-coordinates is larger than the difference between the y-coordinates. If it is, this is a horizontal-ish line, and if not, a vertical-ish one.\index{Math.abs function}\index{absolute value}
+
+Make sure you compare the \emph{absolute} values of the \emph{x} and \emph{y} difference, which you can get with \lstinline`Math.abs`.\index{swapping bindings}
+
+Once you know along which \index{axis}axis you will be looping, you can check whether the start point has a higher coordinate along that axis than the endpoint and swap them if necessary. A succinct way to swap the values of two bindings in JavaScript uses \index{destructuring assignment}destructuring assignment like this:
+
+\begin{lstlisting}
+[start, end] = [end, start];
+\end{lstlisting}
+\noindent\index{rounding}
+
+Then you can compute the \index{slope}slope of the line, which determines the amount the coordinate on the other axis changes for each step you take along your main axis. With that, you can run a loop along the main axis while also tracking the corresponding position on the other axis, and you can draw pixels on every iteration. Make sure you round the non-main axis coordinates since they are likely to be fractional and the \lstinline`draw` method doesn't respond well to fractional coordinates.
+
+\section{Node.js}
+
+\subsection{Search tool}\index{RegExp class}\index{search tool (exercise)}
+
+Your first command line argument, the \index{regular expression}regular expression, can be found in \lstinline`process.argv[2]`. The input files come after that. You can use the \lstinline`RegExp` constructor to go from a string to a regular expression object.\index{readFileSync function}
+
+Doing this synchronously, with \lstinline`readFileSync`, is more straightforward, but if you use \lstinline`fs.promises` again to get promise-returning functions and write an \lstinline`async` function, the code looks similar.\index{stat function}\index{statSync function}\index{isDirectory method}
+
+To figure out whether something is a directory, you can again use \lstinline`stat` (or \lstinline`statSync`) and the stats object's \lstinline`isDirectory` method.\index{readdir function}\index{readdirSync function}
+
+Exploring a directory is a branching process. You can do it either by using a recursive function or by keeping an array of work (files that still need to be explored). To find the files in a directory, you can call \lstinline`readdir` or \lstinline`readdirSync`. The strange capitalization—Node's file system function naming is loosely based on standard Unix functions, such as \lstinline`readdir`, that are all lowercase, but then it adds \lstinline`Sync` with a capital letter.
+
+To go from a filename read with \lstinline`readdir` to a full path name, you have to combine it with the name of the directory, putting a \index{slash
+character}slash
+character (\lstinline`/`) between them.
+
+\subsection{Directory creation}\index{directory creation (exercise)}\index{file server example}\index{MKCOL method}\index{mkdir function}\index{idempotency}\index{400 (HTTP status code)}
+
+You can use the function that implements the \lstinline`DELETE` method as a blueprint for the \lstinline`MKCOL` method. When no file is found, try to create a directory with \lstinline`mkdir`. When a directory exists at that path, you can return a 204 response so that directory creation requests are idempotent. If a nondirectory file exists here, return an error code. Code 400 (``bad request'') would be appropriate.
+
+\subsection{A public space on the web}\index{file server example}\index{textarea (HTML tag)}\index{fetch function}\index{relative path}\index{public space (exercise)}
+
+You can create a \lstinline`<textarea>` element to hold the content of the file that is being edited. A \lstinline`GET` request, using \lstinline`fetch`, can retrieve the current content of the file. You can use relative URLs like \emph{index.html}, instead of \href{http://localhost:8000/index.html}{\emph{http://localhost:8000\slash index.html}}, to refer to files on the same server as the running script.\index{form (HTML tag)}\index{submit event}\index{PUT method}
+
+Then, when the user clicks a button (you can use a \lstinline`<form>` element and \lstinline`"submit"` event), make a \lstinline`PUT` request to the same URL, with the content of the \lstinline`<textarea>` as request body, to save the file.\index{select (HTML tag)}\index{option (HTML tag)}\index{change event}
+
+You can then add a \lstinline`<select>` element that contains all the files in the server's top \index{directory}directory by adding \lstinline`<option>` elements containing the lines returned by a \lstinline`GET` request to the URL \lstinline`/`. When the user selects another file (a \lstinline`"change"` event on the field), the script must fetch and display that file. When saving a file, use the currently selected filename.
+
+\section{Project: Skill-Sharing Website}
+
+\subsection{Disk persistence}\index{file system}\index{writeFile function}\index{updated method}\index{persistence}
+
+The simplest solution I can come up with is to encode the whole \lstinline`talks` object as \index{JSON}JSON and dump it to a file with \lstinline`writeFile`. There is already a method (\lstinline`updated`) that is called every time the server's data changes. It can be extended to write the new data to disk.\index{readFile function}
+
+Pick a \index{file}filename, for example \lstinline`./talks.json`. When the server starts, it can try to read that file with \lstinline`readFile`, and if that succeeds, the server can use the file's contents as its starting data.\index{prototype}\index{JSON.parse function}
+
+Beware, though. The \lstinline`talks` object started as a prototype-less object so that the \lstinline`in` operator could reliably be used. \lstinline`JSON.parse` will return regular objects with \lstinline`Object.prototype` as their prototype. If you use JSON as your file format, you'll have to copy the properties of the object returned by \lstinline`JSON.parse` into a new, prototype-less object.
+
+\subsection{Comment field resets}\index{comment field reset (exercise)}\index{template}\index{syncState method}
+
+The best way to do this is probably to make talks component objects, with a \lstinline`syncState` method, so that they can be updated to show a modified version of the talk. During normal operation, the only way a talk can be changed is by adding more comments, so the \lstinline`syncState` method can be relatively simple.
+
+The difficult part is that, when a changed list of talks comes in, we have to reconcile the existing list of DOM components with the talks on the new list—deleting components whose talk was deleted and updating components whose talk changed.\index{synchronization}\index{live view}
+
+To do this, it might be helpful to keep a data structure that stores the talk components under the talk titles so that you can easily figure out whether a component exists for a given talk. You can then loop over the new array of talks, and for each of them, either synchronize an existing component or create a new one. To delete components for deleted talks, you'll have to also loop over the components and check whether the corresponding talks still exist.

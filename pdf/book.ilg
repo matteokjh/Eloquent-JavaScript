@@ -1,0 +1,13 @@
+This is makeindex, version 2.15 [TeX Live 2017] (kpathsea + Thai support).
+Scanning input file book.idx....
+!! Input index error (file = book.idx, line = 334):
+   -- Extra `!' at position 58 of first argument.
+!! Input index error (file = book.idx, line = 335):
+   -- Extra `!' at position 55 of first argument.
+!! Input index error (file = book.idx, line = 336):
+   -- Extra `!' at position 54 of first argument.
+....done (4950 entries accepted, 3 rejected).
+Sorting entries................................................done (67469 comparisons).
+Generating output file book.ind........done (2495 lines written, 0 warnings).
+Output written in book.ind.
+Transcript written in book.ilg.

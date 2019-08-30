@@ -1,0 +1,576 @@
+\chapter{Node.js}\label{node}
+
+\epigraphhead[30]{
+\epigraph{\hspace*{-.1cm}\itshape``A student asked, `The programmers of old used only simple machines and no programming languages, yet they made beautiful programs. Why do we use complicated machines and programming languages?'. Fu-Tzu replied, `The builders of old used only sticks and clay, yet they made beautiful huts.'''}%
+{---Master Yuan-Ma, The Book of Programming}
+}\index{Yuan-Ma}\index{Book of Programming}\index{command line}
+
+So far, we have used the JavaScript language in a single environment: the browser. This chapter and the \hyperref[skillsharing]{next one} will briefly introduce \index{Node.js}Node.js, a program that allows you to apply your JavaScript skills outside of the browser. With it, you can build anything from small command line tools to HTTP \index{server}servers that power dynamic \index{website}websites.
+
+These chapters aim to teach you the main concepts that Node.js uses and to give you enough information to write useful programs for it. They do not try to be a complete, or even a thorough, treatment of the platform.
+
+If you want to follow along and run the code in this chapter, you'll need to install Node.js version 10.1 or higher. To do so, go to \href{https://nodejs.org}{\emph{https://nodejs.org}} and follow the installation instructions for your operating system. You can also find further \index{documentation}documentation for Node.js there.
+
+\section{Background}\index{responsiveness}\index{input}\index{network!speed}
+
+One of the more difficult problems with writing systems that communicate over the network is managing input and \index{output}output—that is, the reading and writing of data to and from the network and \index{hard
+drive}hard
+drive. Moving data around takes time, and \index{scheduling}scheduling it cleverly can make a big difference in how quickly a system responds to the user or to network requests.\index{asynchronous programming!in Node.js}
+
+In such programs, asynchronous programming is often helpful. It allows the program to send and receive data from and to multiple devices at the same time without complicated thread management and synchronization.\index{programming language}\index{Node.js}\index{standard}
+
+Node was initially conceived for the purpose of making asynchronous programming easy and convenient. JavaScript lends itself well to a system like Node. It is one of the few programming languages that does not have a built-in way to do in- and output. Thus, JavaScript could be fit onto Node's rather eccentric approach to in- and output without ending up with two inconsistent interfaces. In 2009, when Node was being designed, people were already doing callback-based programming in the browser, so the \index{community}community around the language was used to an asynchronous programming style.
+
+\section{The node command}\index{node program}
+
+When \index{Node.js}Node.js is installed on a system, it provides a program called \lstinline`node`, which is used to run JavaScript files. Say you have a file \lstinline`hello.js`, containing this code:
+
+\begin{lstlisting}
+let message = "Hello world";
+console.log(message);
+\end{lstlisting}
+\noindent
+
+You can then run \lstinline`node` from the \index{command line}command line like this to execute the program:
+
+\begin{lstlisting}
+$ node hello.js
+Hello world
+\end{lstlisting}
+\noindent\index{console.log}
+
+The \lstinline`console.log` method in Node does something similar to what it does in the browser. It prints out a piece of text. But in Node, the text will go to the process's \index{standard output}standard output stream, rather than to a browser's \index{JavaScript console}JavaScript console. When running \lstinline`node` from the command line, that means you see the logged values in your \index{terminal}terminal.\index{node program}\index{read-eval-print loop}
+
+If you run \lstinline`node` without giving it a file, it provides you with a prompt at which you can type JavaScript code and immediately see the result.
+
+\begin{lstlisting}
+$ node
+> 1 + 1
+2
+> [-1, -2, -3].map(Math.abs)
+[1, 2, 3]
+> process.exit(0)
+$
+\end{lstlisting}
+\noindent\index{process object}\index{global scope}\index{binding!global}\index{exit method}\index{status code}
+
+The \lstinline`process` binding, just like the \lstinline`console` binding, is available globally in Node. It provides various ways to inspect and manipulate the current program. The \lstinline`exit` method ends the process and can be given an exit status code, which tells the program that started \lstinline`node` (in this case, the command line shell) whether the program completed successfully (code zero) or encountered an error (any other code).\index{command line}\index{argv property}
+
+To find the command line arguments given to your script, you can read \lstinline`process.argv`, which is an array of strings. Note that it also includes the name of the \lstinline`node` command and your script name, so the actual arguments start at index 2. If \lstinline`showargv.js` contains the statement \lstinline`console.log(process.argv)`, you could run it like this:
+
+\begin{lstlisting}
+$ node showargv.js one --and two
+["node", "/tmp/showargv.js", "one", "--and", "two"]
+\end{lstlisting}
+\noindent\index{binding!global}
+
+All the \index{standard}standard JavaScript global bindings, such as \lstinline`Array`, \lstinline`Math`, and \lstinline`JSON`, are also present in Node's environment. Browser-related functionality, such as \lstinline`document` or \lstinline`prompt`, is not.
+
+\section{Modules}\index{Node.js}\index{global scope}\index{module loader}
+
+Beyond the bindings I mentioned, such as \lstinline`console` and \lstinline`process`, Node puts few additional bindings in the global scope. If you want to access built-in functionality, you have to ask the module system for it.\index{require function}
+
+The \index{CommonJS}CommonJS module system, based on the \lstinline`require` function, was described in \hyperref[modules.commonjs]{Chapter 10}. This system is built into Node and is used to load anything from built-in \index{module}modules to downloaded \index{package}packages to \index{file}files that are part of your own program.\index{path!file system}\index{relative path}\index{resolution}
+
+When \lstinline`require` is called, Node has to resolve the given string to an actual \index{file}file that it can load. Pathnames that start with \lstinline`/`, \lstinline`./`, or \lstinline`../` are resolved relative to the current module's path, where \lstinline`.` stands for the current directory, \lstinline`../` for one directory up, and \lstinline`/` for the root of the file system. So if you ask for \lstinline`"./graph"` from the file \lstinline`/tmp/robot/robot.js`, Node will try to load the file \lstinline`/tmp/robot/graph.js`.\index{index.js}
+
+The \lstinline`.js` \index{extension}extension may be omitted, and Node will add it if such a file exists. If the required path refers to a \index{directory}directory, Node will try to load the file named \lstinline`index.js` in that directory.\index{node\_modules directory}\index{directory}
+
+When a string that does not look like a relative or absolute path is given to \lstinline`require`, it is assumed to refer to either a built-in \index{module}module or a module installed in a \lstinline`node_modules` directory. For example, \lstinline`require("fs")` will give you Node's built-in file system module. And \lstinline`require("robot")` might try to load the library found in \lstinline`node_modules/robot/`. A common way to install such libraries is by using \index{NPM}NPM, which we'll come back to in a moment.\index{require function}\index{Node.js}\index{garble example}
+
+Let's set up a small project consisting of two files. The first one, called \lstinline`main.js`, defines a script that can be called from the \index{command line}command line to reverse a string.
+
+\begin{lstlisting}
+const {reverse} = require("./reverse");
+
+// Index 2 holds the first actual command line argument
+let argument = process.argv[2];
+
+console.log(reverse(argument));
+\end{lstlisting}
+\noindent\index{reuse}\index{Array.from function}\index{join method}
+
+The file \lstinline`reverse.js` defines a library for reversing strings, which can be used both by this command line tool and by other scripts that need direct access to a string-reversing function.
+
+\begin{lstlisting}
+exports.reverse = function(string) {
+  return Array.from(string).reverse().join("");
+};
+\end{lstlisting}
+\noindent\index{exports object}\index{CommonJS}\index{interface!module}
+
+Remember that adding properties to \lstinline`exports` adds them to the interface of the module. Since Node.js treats files as \index{CommonJS}CommonJS \index{module}modules, \lstinline`main.js` can take the exported \lstinline`reverse` function from \lstinline`reverse.js`.
+
+We can now call our tool like this:
+
+\begin{lstlisting}
+$ node main.js JavaScript
+tpircSavaJ
+\end{lstlisting}
+\noindent
+
+\section{Installing with NPM}\index{NPM}\index{Node.js}\index{npm program}\index{library}
+
+NPM, which was introduced in \hyperref[modules.modules_npm]{Chapter 10}, is an online repository of JavaScript \index{module}modules, many of which are specifically written for Node. When you install Node on your computer, you also get the \lstinline`npm` command, which you can use to interact with this repository.\index{ini package}
+
+NPM's main use is \index{download}downloading packages. We saw the \lstinline`ini` package in \hyperref[modules.modules_ini]{Chapter 10}. We can use NPM to fetch and install that package on our computer.
+
+\begin{lstlisting}
+$ npm install ini
+npm WARN enoent ENOENT: no such file or directory,
+         open '/tmp/package.json'
++ ini@1.3.5
+added 1 package in 0.552s
+
+$ node
+> const {parse} = require("ini");
+> parse("x = 1\ny = 2");
+{ x: '1', y: '2' }
+\end{lstlisting}
+\noindent\index{require function}\index{node\_modules directory}\index{npm program}
+
+After running \lstinline`npm install`, \index{NPM}NPM will have created a directory called \lstinline`node_modules`. Inside that directory will be an \lstinline`ini` directory that contains the \index{library}library. You can open it and look at the code. When we call \lstinline`require("ini")`, this library is loaded, and we can call its \lstinline`parse` property to parse a configuration file.
+
+By default NPM installs packages under the current directory, rather than in a central place. If you are used to other package managers, this may seem unusual, but it has advantages—it puts each application in full control of the packages it installs and makes it easier to manage versions and clean up when removing an application.
+
+\subsection{Package files}\index{package.json}\index{dependency}
+
+In the \lstinline`npm install` example, you could see a \index{warning}warning about the fact that the \lstinline`package.json` file did not exist. It is recommended to create such a file for each project, either manually or by running \lstinline`npm init`. It contains some information about the project, such as its name and \index{version}version, and lists its dependencies.
+
+The robot simulation from \hyperref[robot]{Chapter 7}, as modularized in the exercise in \hyperref[modules.modular_robot]{Chapter 10}, might have a \lstinline`package.json` file like this:
+
+\begin{lstlisting}
+{
+  "author": "Marijn Haverbeke",
+  "name": "eloquent-javascript-robot",
+  "description": "Simulation of a package-delivery robot",
+  "version": "1.0.0",
+  "main": "run.js",
+  "dependencies": {
+    "dijkstrajs": "^1.0.1",
+    "random-item": "^1.0.0"
+  },
+  "license": "ISC"
+}
+\end{lstlisting}
+\noindent\index{npm program}\index{tool}
+
+When you run \lstinline`npm install` without naming a package to install, NPM will install the dependencies listed in \lstinline`package.json`. When you install a specific package that is not already listed as a dependency, NPM will add it to \lstinline`package.json`.
+
+\subsection{Versions}\index{package.json}\index{dependency}\index{evolution}
+
+A \lstinline`package.json` file lists both the program's own \index{version}version and versions for its dependencies. Versions are a way to deal with the fact that \index{package}packages evolve separately, and code written to work with a package as it existed at one point may not work with a later, modified version of the package.\index{compatibility}
+
+NPM demands that its packages follow a schema called \emph{\index{semantic
+versioning}semantic
+versioning}, which encodes some information about which versions are \emph{compatible} (don't break the old interface) in the version number. A semantic version consists of three numbers, separated by periods, such as \lstinline`2.3.0`. Every time new functionality is added, the middle number has to be incremented. Every time compatibility is broken, so that existing code that uses the package might not work with the new version, the first number has to be incremented.\index{caret character}
+
+A caret character (\lstinline`^`) in front of the version number for a dependency in \lstinline`package.json` indicates that any version compatible with the given number may be installed. So, for example, \lstinline`"^2.3.0"` would mean that any version greater than or equal to 2.3.0 and less than 3.0.0 is allowed.\index{publishing}
+
+The \lstinline`npm` command is also used to publish new packages or new versions of packages. If you run \lstinline`npm publish` in a \index{directory}directory that has a \lstinline`package.json` file, it will publish a package with the name and version listed in the JSON file to the registry. Anyone can publish packages to NPM—though only under a package name that isn't in use yet since it would be somewhat scary if random people could update existing packages.
+
+Since the \lstinline`npm` program is a piece of software that talks to an open system—the package registry—there is nothing unique about what it does. Another program, \lstinline`yarn`, which can be installed from the NPM registry, fills the same role as \lstinline`npm` using a somewhat different interface and installation strategy.
+
+This book won't delve further into the details of \index{NPM}NPM usage. Refer to \href{https://npmjs.org}{\emph{https://npmjs.org}} for further documentation and a way to search for packages.
+
+\section{The file system module}\index{directory}\index{fs package}\index{Node.js}\index{file!access}
+
+One of the most commonly used built-in modules in Node is the \lstinline`fs` module, which stands for \emph{\index{file system}file system}. It exports functions for working with files and directories.\index{readFile function}\index{callback function}
+
+For example, the function called \lstinline`readFile` reads a file and then calls a callback with the file's contents.
+
+\begin{lstlisting}
+let {readFile} = require("fs");
+readFile("file.txt", "utf8", (error, text) => {
+  if (error) throw error;
+  console.log("The file contains:", text);
+});
+\end{lstlisting}
+\noindent\index{Buffer class}
+
+The second argument to \lstinline`readFile` indicates the \emph{\index{character
+encoding}character
+encoding} used to decode the file into a string. There are several ways in which \index{text}text can be encoded to \index{binary data}binary data, but most modern systems use \index{UTF\-8}UTF-8. So unless you have reasons to believe another encoding is used, pass \lstinline`"utf8"` when reading a text file. If you do not pass an encoding, Node will assume you are interested in the binary data and will give you a \lstinline`Buffer` object instead of a string. This is an \index{array-like object}array-like object that contains numbers representing the bytes (8-bit chunks of data) in the files.
+
+\begin{lstlisting}
+const {readFile} = require("fs");
+readFile("file.txt", (error, buffer) => {
+  if (error) throw error;
+  console.log("The file contained", buffer.length, "bytes.",
+              "The first byte is:", buffer[0]);
+});
+\end{lstlisting}
+\noindent\index{writeFile function}\index{file system}\index{file!access}
+
+A similar function, \lstinline`writeFile`, is used to write a file to disk.
+
+\begin{lstlisting}
+const {writeFile} = require("fs");
+writeFile("graffiti.txt", "Node was here", err => {
+  if (err) console.log(`Failed to write file: ${err}`);
+  else console.log("File written.");
+});
+\end{lstlisting}
+\noindent\index{Buffer class}\index{character encoding}
+
+Here it was not necessary to specify the encoding—\lstinline`writeFile` will assume that when it is given a string to write, rather than a \lstinline`Buffer` object, it should write it out as text using its default character encoding, which is \index{UTF\-8}UTF-8.\index{fs package}\index{readdir function}\index{stat function}\index{rename function}\index{unlink function}
+
+The \lstinline`fs` module contains many other useful functions: \lstinline`readdir` will return the files in a \index{directory}directory as an array of strings, \lstinline`stat` will retrieve information about a file, \lstinline`rename` will rename a file, \lstinline`unlink` will remove one, and so on. See the documentation at \href{https://nodejs.org}{\emph{https://nodejs.org}} for specifics.\index{asynchronous programming!in Node.js}\index{Node.js}\index{error handling}\index{callback function}
+
+Most of these take a callback function as the last parameter, which they call either with an error (the first argument) or with a successful result (the second). As we saw in \hyperref[async]{Chapter 11}, there are downsides to this style of programming—the biggest one being that error handling becomes verbose and error-prone.\index{Promise class}\index{promises package}
+
+Though promises have been part of JavaScript for a while, at the time of writing their integration into Node.js is still a work in progress. There is an object \lstinline`promises` exported from the \lstinline`fs` package since version 10.1 that contains most of the same functions as \lstinline`fs` but uses promises rather than callback functions.
+
+\begin{lstlisting}
+const {readFile} = require("fs").promises;
+readFile("file.txt", "utf8")
+  .then(text => console.log("The file contains:", text));
+\end{lstlisting}
+\noindent\index{synchronous programming}\index{fs package}\index{readFileSync function}
+
+Sometimes you don't need asynchronicity, and it just gets in the way. Many of the functions in \lstinline`fs` also have a synchronous variant, which has the same name with \lstinline`Sync` added to the end. For example, the synchronous version of \lstinline`readFile` is called \lstinline`readFileSync`.
+
+\begin{lstlisting}
+const {readFileSync} = require("fs");
+console.log("The file contains:",
+            readFileSync("file.txt", "utf8"));
+\end{lstlisting}
+\noindent\index{optimization}\index{performance}\index{blocking}
+
+Do note that while such a synchronous operation is being performed, your program is stopped entirely. If it should be responding to the user or to other machines on the network, being stuck on a synchronous action might produce annoying delays.
+
+\section{The HTTP module}\index{Node.js}\index{http package}\index{HTTP!server}
+
+Another central module is called \lstinline`http`. It provides functionality for running HTTP \index{server}servers and making HTTP \index{request}requests.\index{listening (TCP)}\index{listen method}\index{createServer function}
+
+This is all it takes to start an HTTP server:
+
+\begin{lstlisting}
+const {createServer} = require("http");
+let server = createServer((request, response) => {
+  response.writeHead(200, {"Content-Type": "text/html"});
+  response.write(`
+    <h1>Hello!</h1>
+    <p>You asked for <code>${request.url}</code></p>`);
+  response.end();
+});
+server.listen(8000);
+console.log("Listening! (port 8000)");
+\end{lstlisting}
+\noindent\index{port}\index{localhost}
+
+If you run this script on your own machine, you can point your web browser at \href{http://localhost:8000/hello}{\emph{http://localhost:8000\slash hello}} to make a request to your server. It will respond with a small HTML page.\index{createServer function}\index{HTTP}
+
+The function passed as argument to \lstinline`createServer` is called every time a client connects to the server. The \lstinline`request` and \lstinline`response` bindings are objects representing the incoming and outgoing data. The first contains information about the \index{request}request, such as its \lstinline`url` property, which tells us to what URL the request was made.
+
+So, when you open that page in your browser, it sends a request to your own computer. This causes the server function to run and send back a response, which you can then see in the browser.\index{200 (HTTP status code)}\index{Content-Type header}\index{writeHead method}
+
+To send something back, you call methods on the \lstinline`response` object. The first, \lstinline`writeHead`, will write out the \index{response}response \index{header}headers (see \hyperref[http.headers]{Chapter 18}). You give it the status code (200 for ``OK'' in this case) and an object that contains header values. The example sets the \lstinline`Content-Type` header to inform the client that we'll be sending back an HTML document.\index{writable stream}\index{body (HTTP)}\index{stream}\index{write method}\index{end method}
+
+Next, the actual response body (the document itself) is sent with \lstinline`response.write`. You are allowed to call this method multiple times if you want to send the response piece by piece, for example to stream data to the client as it becomes available. Finally, \lstinline`response.end` signals the end of the response.\index{listen method}
+
+The call to \lstinline`server.listen` causes the \index{server}server to start waiting for connections on \index{port}port 8000. This is why you have to connect to \emph{localhost:8000} to speak to this server, rather than just \emph{localhost}, which would use the default port 80.\index{Node.js}\index{kill process}
+
+When you run this script, the process just sits there and waits. When a script is listening for events—in this case, network connections—\lstinline`node` will not automatically exit when it reaches the end of the script. To close it, press \textsc{control}-C.\index{method!HTTP}
+
+A real web \index{server}server usually does more than the one in the example—it looks at the request's \index{method}method (the \lstinline`method` property) to see what action the client is trying to perform and looks at the request's \index{URL}URL to find out which resource this action is being performed on. We'll see a more advanced server \hyperref[node.file_server]{later in this chapter}.\index{http package}\index{request function}\index{HTTP!client}
+
+To act as an HTTP \emph{\index{client}client}, we can use the \lstinline`request` function in the \lstinline`http` module.
+
+\begin{lstlisting}
+const {request} = require("http");
+let requestStream = request({
+  hostname: "eloquentjavascript.net",
+  path: "/20_node.html",
+  method: "GET",
+  headers: {Accept: "text/html"}
+}, response => {
+  console.log("Server responded with status code",
+              response.statusCode);
+});
+requestStream.end();
+\end{lstlisting}
+\noindent\index{Node.js}\index{callback function}\index{readable stream}
+
+The first argument to \lstinline`request` configures the request, telling Node what server to talk to, what path to request from that server, which method to use, and so on. The second argument is the function that should be called when a response comes in. It is given an object that allows us to inspect the response, for example to find out its status code.\index{GET method}\index{write method}\index{end method}\index{writable stream}\index{request function}
+
+Just like the \lstinline`response` object we saw in the server, the object returned by \lstinline`request` allows us to \index{stream}stream data into the \index{request}request with the \lstinline`write` method and finish the request with the \lstinline`end` method. The example does not use \lstinline`write` because \lstinline`GET` requests should not contain data in their request body.\index{HTTPS}\index{https package}\index{request function}
+
+There's a similar \lstinline`request` function in the \lstinline`https` module that can be used to make requests to \lstinline`https:` URLs.\index{fetch function}\index{Promise class}\index{node-fetch package}
+
+Making requests with Node's raw functionality is rather verbose. There are much more convenient wrapper packages available on NPM. For example, \lstinline`node-fetch` provides the promise-based \lstinline`fetch` interface that we know from the browser.
+
+\section{Streams}\index{Node.js}\index{stream}\index{writable stream}
+
+We have seen two instances of writable streams in the HTTP examples—namely, the response object that the server could write to and the request object that was returned from \lstinline`request`.\index{callback function}\index{asynchronous programming!in Node.js}\index{write method}\index{end method}\index{Buffer class}
+
+\emph{Writable streams} are a widely used concept in Node. Such objects have a \lstinline`write` method that can be passed a string or a \lstinline`Buffer` object to write something to the stream. Their \lstinline`end` method closes the stream and optionally takes a value to write to the stream before closing. Both of these methods can also be given a callback as an additional argument, which they will call when the writing or closing has finished.\index{createWriteStream function}\index{writeFile function}\index{file!stream}
+
+It is possible to create a writable stream that points at a file with the \lstinline`createWriteStream` function from the \lstinline`fs` module. Then you can use the \lstinline`write` method on the resulting object to write the file one piece at a time, rather than in one shot as with \lstinline`writeFile`.\index{createServer function}\index{request function}\index{event handling}\index{readable stream}
+
+Readable \index{stream}streams are a little more involved. Both the \lstinline`request` binding that was passed to the HTTP server's callback and the \lstinline`response` binding passed to the HTTP client's callback are readable streams—a server reads requests and then writes responses, whereas a client first writes a request and then reads a response. Reading from a stream is done using event handlers, rather than methods.\index{on method}\index{addEventListener method}
+
+Objects that emit events in Node have a method called \lstinline`on` that is similar to the \lstinline`addEventListener` method in the browser. You give it an event name and then a function, and it will register that function to be called whenever the given event occurs.\index{createReadStream function}\index{data event}\index{end event}\index{readable stream}
+
+Readable \index{stream}streams have \lstinline`"data"` and \lstinline`"end"` events. The first is fired every time data comes in, and the second is called whenever the stream is at its end. This model is most suited for \emph{streaming} data that can be immediately processed, even when the whole document isn't available yet. A file can be read as a readable stream by using the \lstinline`createReadStream` function from \lstinline`fs`.\index{upcasing server example}\index{capitalization}\index{toUpperCase method}
+
+This code creates a \index{server}server that reads request bodies and streams them back to the client as all-uppercase text:
+
+\begin{lstlisting}
+const {createServer} = require("http");
+createServer((request, response) => {
+  response.writeHead(200, {"Content-Type": "text/plain"});
+  request.on("data", chunk =>
+    response.write(chunk.toString().toUpperCase()));
+  request.on("end", () => response.end());
+}).listen(8000);
+\end{lstlisting}
+\noindent\index{Buffer class}\index{toString method}
+
+The \lstinline`chunk` value passed to the data handler will be a binary \lstinline`Buffer`. We can convert this to a string by decoding it as UTF-8 encoded characters with its \lstinline`toString` method.
+
+The following piece of code, when run with the uppercasing server active, will send a request to that server and write out the response it gets:
+
+\begin{lstlisting}
+const {request} = require("http");
+request({
+  hostname: "localhost",
+  port: 8000,
+  method: "POST"
+}, response => {
+  response.on("data", chunk =>
+    process.stdout.write(chunk.toString()));
+}).end("Hello server");
+// → HELLO SERVER
+\end{lstlisting}
+\noindent\index{stdout property}\index{standard output}\index{writable stream}\index{console.log}
+
+The example writes to \lstinline`process.stdout` (the process's standard output, which is a writable stream) instead of using \lstinline`console.log`. We can't use \lstinline`console.log` because it adds an extra newline character after each piece of text that it writes, which isn't appropriate here since the response may come in as multiple chunks.
+
+\label{node.file_server}\section{A file server}\index{file server example}\index{Node.js}\index{HTTP!server}
+
+Let's combine our newfound knowledge about HTTP \index{server}servers and working with the \index{file system}file system to create a bridge between the two: an HTTP server that allows \index{remote access}remote access to a file system. Such a server has all kinds of uses—it allows web applications to store and share data, or it can give a group of people shared access to a bunch of files.\index{path!URL}\index{GET method}\index{PUT method}\index{DELETE method}\index{file!resource}
+
+When we treat files as HTTP \index{resource}resources, the HTTP methods \lstinline`GET`, \lstinline`PUT`, and \lstinline`DELETE` can be used to read, write, and delete the files, respectively. We will interpret the path in the request as the path of the file that the request refers to.\index{path!file system}\index{relative path}
+
+We probably don't want to share our whole file system, so we'll interpret these paths as starting in the server's working \index{directory}directory, which is the directory in which it was started. If I ran the server from \lstinline`/tmp/public/` (or \lstinline`C:\tmp\public\` on Windows), then a request for \lstinline`/file.txt` should refer to \lstinline`/tmp/public/file.txt` (or \lstinline`C:\tmp\public\file.txt`).\index{file server example}\index{Node.js}\index{methods object}\index{Promise class}
+
+We'll build the program piece by piece, using an object called \lstinline`methods` to store the functions that handle the various HTTP methods. Method handlers are \lstinline`async` functions that get the request object as argument and return a promise that resolves to an object that describes the response.
+
+\begin{lstlisting}
+const {createServer} = require("http");
+
+const methods = Object.create(null);
+
+createServer((request, response) => {
+  let handler = methods[request.method] || notAllowed;
+  handler(request)
+    .catch(error => {
+      if (error.status != null) return error;
+      return {body: String(error), status: 500};
+    })
+    .then(({body, status = 200, type = "text/plain"}) => {
+       response.writeHead(status, {"Content-Type": type});
+       if (body && body.pipe) body.pipe(response);
+       else response.end(body);
+    });
+}).listen(8000);
+
+async function notAllowed(request) {
+  return {
+    status: 405,
+    body: `Method ${request.method} not allowed.`
+  };
+}
+\end{lstlisting}
+\noindent\index{405 (HTTP status code)}
+
+This starts a server that just returns 405 error responses, which is the code used to indicate that the server refuses to handle a given method.\index{500 (HTTP status code)}\index{error handling}\index{error response}
+
+When a request handler's promise is rejected, the \lstinline`catch` call translates the error into a response object, if it isn't one already, so that the server can send back an error response to inform the client that it failed to handle the request.\index{200 (HTTP status code)}\index{Content-Type header}
+
+The \lstinline`status` field of the response description may be omitted, in which case it defaults to 200 (OK). The content type, in the \lstinline`type` property, can also be left off, in which case the response is assumed to be plain text.\index{end method}\index{pipe method}\index{stream}
+
+When the value of \lstinline`body` is a \index{readable stream}readable stream, it will have a \lstinline`pipe` method that is used to forward all content from a readable stream to a \index{writable stream}writable stream. If not, it is assumed to be either \lstinline`null` (no body), a string, or a buffer, and it is passed directly to the \index{response}response's \lstinline`end` method.\index{path!URL}\index{urlToPath function}\index{url package}\index{parsing}\index{escaping!in URLs}\index{decodeURIComponent function}\index{startsWith method}
+
+To figure out which file path corresponds to a request URL, the \lstinline`urlPath` function uses Node's built-in \lstinline`url` module to parse the URL. It takes its pathname, which will be something like \lstinline`"/file.txt"`, decodes that to get rid of the \lstinline`%20`-style escape codes, and resolves it relative to the program's working directory.
+
+\begin{lstlisting}
+const {parse} = require("url");
+const {resolve, sep} = require("path");
+
+const baseDirectory = process.cwd();
+
+function urlPath(url) {
+  let {pathname} = parse(url);
+  let path = resolve(decodeURIComponent(pathname).slice(1));
+  if (path != baseDirectory &&
+      !path.startsWith(baseDirectory + sep)) {
+    throw {status: 403, body: "Forbidden"};
+  }
+  return path;
+}
+\end{lstlisting}
+\noindent
+
+As soon as you set up a program to accept network requests, you have to start worrying about \index{security}security. In this case, if we aren't careful, it is likely that we'll accidentally expose our whole \index{file
+system}file
+system to the network.
+
+File paths are strings in Node. To map such a string to an actual file, there is a nontrivial amount of interpretation going on. Paths may, for example, include \lstinline`../` to refer to a parent directory. So one obvious source of problems would be requests for paths like \lstinline`/../secret_file`.\index{path package}\index{resolve function}\index{cwd function}\index{process object}\index{403 (HTTP status code)}\index{sep binding}\index{backslash character!as path separator}\index{slash character}
+
+To avoid such problems, \lstinline`urlPath` uses the \lstinline`resolve` function from the \lstinline`path` module, which resolves relative paths. It then verifies that the result is \emph{below} the working directory. The \lstinline`process.cwd` function (where \lstinline`cwd` stands for ``current working directory'') can be used to find this working directory. The \lstinline`sep` binding from the \lstinline`path` package is the system's path separator—a backslash on Windows and a forward slash on most other systems. When the path doesn't start with the base directory, the function throws an error response object, using the HTTP status code indicating that access to the resource is forbidden.\index{file server example}\index{Node.js}\index{GET method}\index{file!resource}
+
+We'll set up the \lstinline`GET` method to return a list of files when reading a \index{directory}directory and to return the file's content when reading a regular file.\index{media type}\index{Content-Type header}\index{mime package}
+
+One tricky question is what kind of \lstinline`Content-Type` header we should set when returning a file's content. Since these files could be anything, our server can't simply return the same content type for all of them. \index{NPM}NPM can help us again here. The \lstinline`mime` package (content type indicators like \lstinline`text/plain` are also called \emph{\index{MIME type}MIME types}) knows the correct type for a large number of \index{file extension}file extensions.\index{require function}\index{npm program}
+
+The following \lstinline`npm` command, in the directory where the server script lives, installs a specific version of \lstinline`mime`:
+
+\begin{lstlisting}
+$ npm install mime@2.2.0
+\end{lstlisting}
+\noindent\index{404 (HTTP status code)}\index{stat function}\index{file!resource}
+
+When a requested file does not exist, the correct HTTP status code to return is 404. We'll use the \lstinline`stat` function, which looks up information about a file, to find out both whether the file exists and whether it is a \index{directory}directory.
+
+\begin{lstlisting}
+const {createReadStream} = require("fs");
+const {stat, readdir} = require("fs").promises;
+const mime = require("mime");
+
+methods.GET = async function(request) {
+  let path = urlPath(request.url);
+  let stats;
+  try {
+    stats = await stat(path);
+  } catch (error) {
+    if (error.code != "ENOENT") throw error;
+    else return {status: 404, body: "File not found"};
+  }
+  if (stats.isDirectory()) {
+    return {body: (await readdir(path)).join("\n")};
+  } else {
+    return {body: createReadStream(path),
+            type: mime.getType(path)};
+  }
+};
+\end{lstlisting}
+\noindent\index{createReadStream function}\index{asynchronous programming!in Node.js}\index{error handling}\index{ENOENT (status code)}\index{Error type}\index{inheritance}
+
+Because it has to touch the disk and thus might take a while, \lstinline`stat` is asynchronous. Since we're using promises rather than callback style, it has to be imported from \lstinline`promises` instead of directly from \lstinline`fs`.
+
+When the file does not exist, \lstinline`stat` will throw an error object with a \lstinline`code` property of \lstinline`"ENOENT"`. These somewhat obscure, \index{Unix}Unix-inspired codes are how you recognize error types in Node.\index{Stats type}\index{stat function}\index{isDirectory method}
+
+The \lstinline`stats` object returned by \lstinline`stat` tells us a number of things about a \index{file}file, such as its size (\lstinline`size` property) and its \index{modification date}modification date (\lstinline`mtime` property). Here we are interested in the question of whether it is a \index{directory}directory or a regular file, which the \lstinline`isDirectory` method tells us.\index{readdir function}
+
+We use \lstinline`readdir` to read the array of files in a \index{directory}directory and return it to the client. For normal files, we create a readable stream with \lstinline`createReadStream` and return that as the body, along with the content type that the \lstinline`mime` package gives us for the file's name.\index{Node.js}\index{file server example}\index{DELETE method}\index{rmdir function}\index{unlink function}
+
+The code to handle \lstinline`DELETE` requests is slightly simpler.
+
+\begin{lstlisting}
+const {rmdir, unlink} = require("fs").promises;
+
+methods.DELETE = async function(request) {
+  let path = urlPath(request.url);
+  let stats;
+  try {
+    stats = await stat(path);
+  } catch (error) {
+    if (error.code != "ENOENT") throw error;
+    else return {status: 204};
+  }
+  if (stats.isDirectory()) await rmdir(path);
+  else await unlink(path);
+  return {status: 204};
+};
+\end{lstlisting}
+\noindent\index{204 (HTTP status code)}\index{body (HTTP)}
+
+When an \index{HTTP}HTTP \index{response}response does not contain any data, the status code 204 (``no content'') can be used to indicate this. Since the response to deletion doesn't need to transmit any information beyond whether the operation succeeded, that is a sensible thing to return here.\index{idempotence}\index{error response}
+
+You may be wondering why trying to delete a nonexistent file returns a success status code, rather than an error. When the file that is being deleted is not there, you could say that the request's objective is already fulfilled. The \index{HTTP}HTTP standard encourages us to make requests \emph{idempotent}, which means that making the same request multiple times produces the same result as making it once. In a way, if you try to delete something that's already gone, the effect you were trying to do has been achieved—the thing is no longer there.\index{file server example}\index{Node.js}\index{PUT method}
+
+This is the handler for \lstinline`PUT` requests:
+
+\begin{lstlisting}
+const {createWriteStream} = require("fs");
+
+function pipeStream(from, to) {
+  return new Promise((resolve, reject) => {
+    from.on("error", reject);
+    to.on("error", reject);
+    to.on("finish", resolve);
+    from.pipe(to);
+  });
+}
+
+methods.PUT = async function(request) {
+  let path = urlPath(request.url);
+  await pipeStream(request, createWriteStream(path));
+  return {status: 204};
+};
+\end{lstlisting}
+\noindent\index{overwriting}\index{204 (HTTP status code)}\index{error event}\index{finish event}\index{createWriteStream function}\index{pipe method}\index{stream}
+
+We don't need to check whether the file exists this time—if it does, we'll just overwrite it. We again use \lstinline`pipe` to move data from a readable stream to a writable one, in this case from the request to the file. But since \lstinline`pipe` isn't written to return a promise, we have to write a wrapper, \lstinline`pipeStream`, that creates a promise around the outcome of calling \lstinline`pipe`.\index{error event}\index{finish event}
+
+When something goes wrong when opening the file, \lstinline`createWriteStream` will still return a stream, but that stream will fire an \lstinline`"error"` event. The output stream to the request may also fail, for example if the network goes down. So we wire up both streams' \lstinline`"error"` events to reject the promise. When \lstinline`pipe` is done, it will close the output stream, which causes it to fire a \lstinline`"finish"` event. That's the point where we can successfully resolve the promise (returning nothing).\index{download}\index{file server example}\index{Node.js}
+
+The full script for the server is available at \href{https://eloquentjavascript.net/code/file_server.js}{\emph{https://eloquentjavascript.net\slash code\slash file\_server.js}}. You can download that and, after installing its dependencies, run it with Node to start your own file server. And, of course, you can modify and extend it to solve this chapter's exercises or to experiment.\index{body (HTTP)}\index{curl program}\index{HTTP!client}\index{method!HTTP}
+
+The command line tool \lstinline`curl`, widely available on \index{Unix}Unix-like systems (such as macOS and Linux), can be used to make HTTP \index{request}requests. The following session briefly tests our server. The \lstinline`-X` option is used to set the request's method, and \lstinline`-d` is used to include a request body.
+
+\begin{lstlisting}
+$ curl http://localhost:8000/file.txt
+File not found
+$ curl -X PUT -d hello http://localhost:8000/file.txt
+$ curl http://localhost:8000/file.txt
+hello
+$ curl -X DELETE http://localhost:8000/file.txt
+$ curl http://localhost:8000/file.txt
+File not found
+\end{lstlisting}
+\noindent
+
+The first request for \lstinline`file.txt` fails since the file does not exist yet. The \lstinline`PUT` request creates the file, and behold, the next request successfully retrieves it. After deleting it with a \lstinline`DELETE` request, the file is again missing.
+
+\section{Summary}\index{Node.js}
+
+Node is a nice, small system that lets us run JavaScript in a nonbrowser context. It was originally designed for network tasks to play the role of a \emph{node} in a network. But it lends itself to all kinds of scripting tasks, and if writing JavaScript is something you enjoy, automating tasks with Node works well.
+
+NPM provides packages for everything you can think of (and quite a few things you'd probably never think of), and it allows you to fetch and install those packages with the \lstinline`npm` program. Node comes with a number of built-in modules, including the \lstinline`fs` module for working with the file system and the \lstinline`http` module for running HTTP servers and making HTTP requests.
+
+All input and output in Node is done asynchronously, unless you explicitly use a synchronous variant of a function, such as \lstinline`readFileSync`. When calling such asynchronous functions, you provide callback functions, and Node will call them with an error value and (if available) a result when it is ready.
+
+\section{Exercises}
+
+\subsection{Search tool}\index{grep}\index{search problem}\index{search tool (exercise)}
+
+On \index{Unix}Unix systems, there is a command line tool called \lstinline`grep` that can be used to quickly search files for a \index{regular expression}regular expression.
+
+Write a Node script that can be run from the \index{command line}command line and acts somewhat like \lstinline`grep`. It treats its first command line argument as a regular expression and treats any further arguments as files to search. It should output the names of any file whose content matches the regular expression.
+
+When that works, extend it so that when one of the arguments is a \index{directory}directory, it searches through all files in that directory and its subdirectories.\index{asynchronous programming!in Node.js}\index{synchronous programming}
+
+Use asynchronous or synchronous file system functions as you see fit. Setting things up so that multiple asynchronous actions are requested at the same time might speed things up a little, but not a huge amount, since most file systems can read only one thing at a time.
+
+\subsection{Directory creation}\index{file server example}\index{directory creation (exercise)}\index{rmdir function}
+
+Though the \lstinline`DELETE` method in our file server is able to delete directories (using \lstinline`rmdir`), the server currently does not provide any way to \emph{create} a \index{directory}directory.\index{MKCOL method}\index{mkdir function}
+
+Add support for the \lstinline`MKCOL` method (``make collection''), which should create a directory by calling \lstinline`mkdir` from the \lstinline`fs` module. \lstinline`MKCOL` is not a widely used HTTP method, but it does exist for this same purpose in the \emph{\index{WebDAV}WebDAV} standard, which specifies a set of conventions on top of \index{HTTP}HTTP that make it suitable for creating documents.
+
+\subsection{A public space on the web}\index{public space (exercise)}\index{file server example}\index{Content-Type header}\index{website}
+
+Since the file server serves up any kind of file and even includes the right \lstinline`Content-Type` header, you can use it to serve a website. Since it allows everybody to delete and replace files, it would be an interesting kind of website: one that can be modified, improved, and vandalized by everybody who takes the time to create the right HTTP request.
+
+Write a basic \index{HTML}HTML page that includes a simple JavaScript file. Put the files in a directory served by the file server and open them in your browser.
+
+Next, as an advanced exercise or even a \index{weekend project}weekend project, combine all the knowledge you gained from this book to build a more user-friendly interface for modifying the website—from \emph{inside} the website.
+
+Use an HTML \index{form}form to edit the content of the files that make up the website, allowing the user to update them on the server by using HTTP requests, as described in \hyperref[http]{Chapter 18}.
+
+Start by making only a single file editable. Then make it so that the user can select which file to edit. Use the fact that our file server returns lists of files when reading a directory.\index{overwriting}
+
+Don't work directly in the code exposed by the file server since if you make a mistake, you are likely to damage the files there. Instead, keep your work outside of the publicly accessible directory and copy it there when testing.
