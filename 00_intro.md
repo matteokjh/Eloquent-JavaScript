@@ -1,28 +1,20 @@
 {{meta {load_files: ["code/intro.js"]}}}
 
-# Introduction
+# 序言
 
 {{quote {author: "Ellen Ullman", title: "Close to the Machine: Technophilia and its Discontents", chapter: true}
 
-We think we are creating the system for our own purposes. We believe
-we are making it in our own image... But the computer is not really
-like us. It is a projection of a very slim part of ourselves: that
-portion devoted to logic, order, rule, and clarity.
+我们常认为，创造出来的系统是出于我们自己本身的目的。我们相信这些系统的诞生是基于我们自己的想象...但是计算机并不真的像我们一样思考。计算机是我们自身逻辑、秩序、规则与明晰的一种投射。
 
 quote}}
 
 {{figure {url: "img/chapter_picture_00.jpg", alt: "Picture of a screwdriver and a circuit board", chapter: "framed"}}}
 
-This is a book about instructing ((computer))s. Computers are about as
-common as screwdrivers today, but they are quite a bit more complex,
-and making them do what you want them to do isn't always easy.
+这是一本关于((计算机))指导性的书。计算机如今像螺丝刀一样常见，但他们较为复杂，所以想让计算机做你想做的事情并不总是简单的。
 
-If the task you have for your computer is a common, well-understood
-one, such as showing you your email or acting like a calculator, you
-can open the appropriate ((application)) and get to work. But for
-unique or open-ended tasks, there probably is no application.
+如果你想要你的计算机帮你完成一些平常，好理解的工作，例如打开你的邮箱或计算器，你只需要打开对应的((应用程序))就行了。但对于独一无二或者无法预知结局的任务，往往是没有具体应用程序的。
 
-That is where ((programming)) may come in. _Programming_ is the act of
+这就是((程序设计))的由来. _Programming_ is the act of
 constructing a _program_—a set of precise instructions telling a
 computer what to do. Because computers are dumb, pedantic beasts,
 programming is fundamentally tedious and frustrating.
