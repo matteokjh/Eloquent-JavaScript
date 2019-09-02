@@ -2,7 +2,6 @@
 /nostarch/hints.tex
 /nostarch/book.*
 /nostarch.pdf
-/html/[012]*.html
 /html/js/chapter_info.js
 /html/js/[012]*.js
 /html/js/acorn_codemirror.js
